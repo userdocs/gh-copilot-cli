@@ -1,0 +1,56 @@
+name: gh copilot cli
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: gh copilot cli part 1
+        env:
+            COPILOT_CLI: ${{ secrets.COPILOT_CLI }}
+        if: ${{ env.COPILOT_CLI != '' }}
+        run: |
+          # Only works with oauth and not PAT https://github.com/github/gh-copilot/issues/1
+          # 1: if these are set: Unset GITHUB_TOKEN and GH_TOKEN to avoid auth errors with the gh CLI as it will try to use these first
+          unset GITHUB_TOKEN GH_TOKEN
+          # 2: Login to gh CLI with the COPILOT secret using the oauth token taken from elsewhere using: gh auth token --hostname github.com
+          printf '%s' "${{ secrets.COPILOT_CLI }}" | gh auth login --with-token
+          # 3: Create the config file for gh copilot to bypass the prompt for analytics and confirmation. Could not find non interactive flag for this
+          mkdir -p ${HOME}/.config/{gh,gh-copilot}
+          printf '%b\n' 'optional_analytics: false\nsuggest_execute_confirm_default: false' > ${HOME}/.config/gh-copilot/config.yml
+          # 4: Set the GITHUB_TOKEN and GH_TOKEN environment variables for the gh CLI to use
+          printf '%s\n' "GITHUB_TOKEN=$(gh auth token --hostname github.com)" >> $GITHUB_ENV
+          printf '%s\n' "GH_TOKEN=$(gh auth token --hostname github.com)" >> $GITHUB_ENV
+          # 5: Install the gh copilot extension
+          gh extension install github/gh-copilot --force
+
+      - name: gh copilot cli part 2
+        run: |
+          # Test the auth status
+          gh auth status
+          # Test the gh copilot extension by printing a summary
+          if [[ -n "${{ secrets.COPILOT_CLI }}" ]]; then
+              gh copilot explain "what is a workflow?" >> $GITHUB_STEP_SUMMARY
+          else
+              printf '%s\n' "COPILOT_CLI secret is not set" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: gh copilot cli part 3
+        run: |
+          # set defaults for the GITHUB_TOKEN and GH_TOKEN environment variables for the gh CLI to use
+          # github.token or secrets.GITHUB_TOKEN can be be used
+          printf '%s\n' "GITHUB_TOKEN=${{ github.token }}" >> $GITHUB_ENV
+          printf '%s\n' "GH_TOKEN=${{ github.token }}" >> $GITHUB_ENV
+
+      - name: gh copilot cli part 4
+        run: |
+          # Defaults work again and we have Token: ghs_ instead of Token: gho_ (gho_ = auth)
+          printf '\n%s\n\n' "### Show gh cli is working again using defaults" >> $GITHUB_STEP_SUMMARY
+          gh auth status
+          printf '\n%s\n\n' "command: \`gh workflow list\`" >> $GITHUB_STEP_SUMMARY
+          gh workflow list --repo ${{ github.repository }} >> $GITHUB_STEP_SUMMARY
