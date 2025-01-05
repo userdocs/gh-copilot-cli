@@ -2,9 +2,9 @@
 
 [`gh copilot`](https://github.com/github/gh-copilot) is a cli tool to interact with Copilot.
 
-Its' currently not really tooled to work in a workflow and is aimed at being a locally used cli tool auth'd via a your `gh cli` oauth token. It only works with oauth.
+It's currently not really tooled to work in a workflow and is aimed at being a locally used cli tool auth'd via a your `gh cli` oauth token. It only works with oauth.
 
-No as this repo will show, we can use it in a workflow bit it requires some things.
+As this repo will show, we can use it in a workflow but it requires some things.
 
 - Problem 1 - analytics
 
@@ -21,11 +21,16 @@ No as this repo will show, we can use it in a workflow bit it requires some thin
 
   On any device you are logged on with `gh cli` you need to do `gh auth token --hostname github.com` to see your `oauth` token.
 
-  Set this as a repository secret to `secrets.COPILOT_CLI`
+  Set this as a repository secret to `secrets.COPILOT_CLI` and then in the workflow step we do this
 
   ```bash
+  unset GITHUB_TOKEN GH_TOKEN
+  printf '%s' "${{ secrets.COPILOT_CLI }}" | gh auth login --with-token
+  mkdir -p ${HOME}/.config/{gh,gh-copilot}
+  printf '%b\n' 'optional_analytics: false\nsuggest_execute_confirm_default: false' > ${HOME}/.config/gh-copilot/config.yml
   printf '%s\n' "GITHUB_TOKEN=$(gh auth token --hostname github.com)" >> $GITHUB_ENV
   printf '%s\n' "GH_TOKEN=$(gh auth token --hostname github.com)" >> $GITHUB_ENV
+  gh extension install github/gh-copilot --force
   ```
 
 - Problem 3 - `GITHUB_TOKEN` / `GH_TOKEN`

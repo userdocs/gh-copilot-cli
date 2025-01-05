@@ -15,6 +15,8 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: gh copilot cli part 1
         env:
@@ -36,11 +38,13 @@ jobs:
           gh extension install github/gh-copilot --force
 
       - name: gh copilot cli part 2
+        env:
+            run_id: ${{ inputs.run_id }}
         run: |
           # Test the auth status
           gh auth status
           # Test the gh copilot extension by printing a summary
-          summary=$(gh run view ${{ inputs.run_id }} --log-failed | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g")
+          summary=$(gh run view ${run_id} --log-failed | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g")
           if [[ -n "${{ secrets.COPILOT_CLI }}" ]]; then
               gh copilot explain "${summary}" >> $GITHUB_STEP_SUMMARY
           else

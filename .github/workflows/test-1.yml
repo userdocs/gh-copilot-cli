@@ -14,6 +14,8 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: gh copilot cli part 2 - failed job
         run: cat fakefile.txt || exit 1

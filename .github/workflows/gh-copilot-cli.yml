@@ -15,7 +15,6 @@ jobs:
             COPILOT_CLI: ${{ secrets.COPILOT_CLI }}
         if: ${{ env.COPILOT_CLI != '' }}
         run: |
-          printf '%s' "TEST: ${COPILOT_CLI}"
           # Only works with oauth and not PAT https://github.com/github/gh-copilot/issues/1
           # 1: if these are set: Unset GITHUB_TOKEN and GH_TOKEN to avoid auth errors with the gh CLI as it will try to use these first
           unset GITHUB_TOKEN GH_TOKEN
