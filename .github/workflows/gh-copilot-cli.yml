@@ -24,13 +24,13 @@ jobs:
           mkdir -p ${HOME}/.config/{gh,gh-copilot}
           printf '%b\n' 'optional_analytics: false\nsuggest_execute_confirm_default: false' > ${HOME}/.config/gh-copilot/config.yml
           # 4: Set the GITHUB_TOKEN and GH_TOKEN environment variables for the gh CLI to use
-          printf '%s\n' "GITHUB_TOKEN=$(gh auth token --hostname github.com)" >> $GITHUB_ENV
-          printf '%s\n' "GH_TOKEN=$(gh auth token --hostname github.com)" >> $GITHUB_ENV
+          # printf '%s\n' "GITHUB_TOKEN=$(gh auth token --hostname github.com)" >> $GITHUB_ENV
+          # printf '%s\n' "GH_TOKEN=$(gh auth token --hostname github.com)" >> $GITHUB_ENV
+          GITHUB_TOKEN=$(gh auth token --hostname github.com)
+          GH_TOKEN=$(gh auth token --hostname github.com)
           # 5: Install the gh copilot extension
           gh extension install github/gh-copilot --force
 
-      - name: gh copilot cli part 2
-        run: |
           # Test the auth status
           gh auth status
           # Test the gh copilot extension by printing a summary
@@ -39,13 +39,6 @@ jobs:
           else
               printf '%s\n' "COPILOT_CLI secret is not set" >> $GITHUB_STEP_SUMMARY
           fi
-
-      - name: gh copilot cli part 3
-        run: |
-          # set defaults for the GITHUB_TOKEN and GH_TOKEN environment variables for the gh CLI to use
-          # github.token or secrets.GITHUB_TOKEN can be be used
-          printf '%s\n' "GITHUB_TOKEN=${{ github.token }}" >> $GITHUB_ENV
-          printf '%s\n' "GH_TOKEN=${{ github.token }}" >> $GITHUB_ENV
 
       - name: gh copilot cli part 4
         run: |
